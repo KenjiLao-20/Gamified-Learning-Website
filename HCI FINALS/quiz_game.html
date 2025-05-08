@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Quiz Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+            text-align: center;
+            margin: 0;
+            padding: 50px 0;
+        }
+        .quiz-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 2px solid #4CAF50;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            transition: transform 0.3s;
+        }
+        .quiz-container:hover {
+            transform: scale(1.02);
+        }
+        h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .option {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 8px 0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            background-color: #428bca;
+            color: white;
+            font-weight: 600;
+        }
+        .option:hover {
+            background-color: #3071a9;
+            transform: scale(1.05);
+        }
+        .correct {
+            background-color: #4CAF50;
+            color: white;
+            animation: pulse 1s;
+        }
+        .wrong {
+            background-color: #F44336;
+            color: white;
+            animation: shake 0.5s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+        #options {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #feedback {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #333;
+            min-height: 30px;
+        }
+        #score {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #timer-container {
+            margin: 15px 0;
+        }
+        #timer {
+            height: 10px;
+            background-color: #4CAF50;
+            width: 100%;
+            border-radius: 5px;
+            transition: width 1s linear;
+        }
+        #progress-container {
+            margin: 15px 0;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            height: 20px;
+        }
+        #progress-bar {
+            height: 100%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            width: 0%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-size: 0.8em;
+            transition: width 0.5s;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .summary-question {
+            flex: 3;
+        }
+        .summary-answer {
+            flex: 1;
+            text-align: right;
+        }
+        .correct-answer {
+            color: #4CAF50;
+        }
+        .wrong-answer {
+            color: #F44336;
+        }
+        .difficulty-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            margin-right: 10px;
+        }
+        .easy {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .difficult {
+            background-color: #FF9800;
+            color: white;
+        }
+        #level-indicator {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h2>Interactive Quiz Game - Human Computer Interaction</h2>
+        
+        <div id="quiz-section">
+            <div id="level-indicator">Current Level: <span id="current-level">Easy</span></div>
+            
+            <div id="progress-container">
+                <div id="progress-bar">0%</div>
+            </div>
+            
+            <div id="timer-container">
+                <div id="timer"></div>
+            </div>
+            
+            <div id="question-container">
+                <p class="question" id="question">Loading...</p>
+                <div id="options"></div>
+            </div>
+            
+            <p id="feedback"></p>
+            <p>Score: <span id="score">0</span></p>
+            <button id="quit-button" onclick="exitQuiz()">Back</button>
+        </div>
+        
+        <div id="summary-section" style="display: none;">
+            <h3>Quiz Summary</h3>
+            <p>Final Score: <span id="final-score">0</span> out of <span id="total-questions">0</span></p>
+            <p>Accuracy: <span id="accuracy">0%</span></p>
+            <div id="summary-list"></div>
+            <button onclick="startQuiz()">Restart Quiz</button>
+            <button onclick="exitQuiz()">Back</button>
+        </div>
+    </div>
+
+    <script>
+        function exitQuiz() {
+            window.location.href = "home.html";
+        }
+
+        const quizData = {
+            easy: [
+                {
+                    question: "What does HCI stand for?",
+                    options: ["Human Computer Interface", "Human Computer Interaction", "Hardware Computer Interaction", "High-level Computing Interface"],
+                    answer: "Human Computer Interaction"
+                },
+                {
+                    question: "Which of the following is a goal of HCI?",
+                    options: ["Efficiency", "Complexity", "Confusion", "Slow response"],
+                    answer: "Efficiency"
+                },
+                {
+                    question: "What is usability in HCI?",
+                    options: ["How difficult a system is to use", "How easily users can accomplish tasks", "The number of colors in an interface", "None of the above"],
+                    answer: "How easily users can accomplish tasks"
+                },
+                {
+                    question: "Which device is NOT an input device in HCI?",
+                    options: ["Keyboard", "Mouse", "Monitor", "Touchscreen"],
+                    answer: "Monitor"
+                },
+                {
+                    question: "What is the primary focus of HCI?",
+                    options: ["How users interact with computers", "How computers work internally", "How fast a computer processes data", "How many applications are installed"],
+                    answer: "How users interact with computers"
+                },
+                {
+                    question: "Which principle refers to making interfaces match real-world conventions?",
+                    options: ["Consistency", "Visibility", "Match between system and real world", "Error prevention"],
+                    answer: "Match between system and real world"
+                },
+                {
+                    question: "What is the term for providing clear feedback about system status?",
+                    options: ["Visibility of system status", "User control", "Recognition", "Flexibility"],
+                    answer: "Visibility of system status"
+                },
+                {
+                    question: "What is a persona in HCI?",
+                    options: ["A fictional character representing a user type", "A programmer", "A testing methodology", "A type of interface"],
+                    answer: "A fictional character representing a user type"
+                },
+                {
+                    question: "What is the purpose of a wireframe in interface design?",
+                    options: ["To create a visual guide for a webpage", "To test server performance", "To encrypt data", "To compress files"],
+                    answer: "To create a visual guide for a webpage"
+                },
+                {
+                    question: "Which of these is a principle of universal design?",
+                    options: ["Exclusive use", "Complexity", "Flexibility in use", "High physical effort"],
+                    answer: "Flexibility in use"
+                }
+            ],
+            difficult: [
+                {
+                    question: "Which model describes user interaction with a system?",
+                    options: ["Waterfall Model", "GOMS Model", "Agile Model", "Cloud Model"],
+                    answer: "GOMS Model"
+                },
+                {
+                    question: "What is a heuristic evaluation?",
+                    options: ["A programming technique", "A usability inspection method", "A data storage method", "A cryptographic technique"],
+                    answer: "A usability inspection method"
+                },
+                {
+                    question: "What is Fitts' Law used for in HCI?",
+                    options: ["Measuring CPU speed", "Predicting human movement", "Encrypting passwords", "Designing network security"],
+                    answer: "Predicting human movement"
+                },
+                {
+                    question: "What does cognitive load refer to in HCI?",
+                    options: ["The weight of a laptop", "The number of processes a CPU can handle", "The amount of mental effort required to use a system", "The speed of an internet connection"],
+                    answer: "The amount of mental effort required to use a system"
+                },
+                {
+                    question: "Which field contributes to HCI research?",
+                    options: ["Psychology", "Design", "Computer Science", "All of the above"],
+                    answer: "All of the above"
+                },
+                {
+                    question: "What does 'affordance' refer to in HCI?",
+                    options: ["The cost of a system", "What an object suggests it can do", "The speed of a computer", "The number of users"],
+                    answer: "What an object suggests it can do"
+                },
+                {
+                    question: "What is the 'gulf of execution' in HCI?",
+                    options: ["The gap between user intentions and available actions", "A physical location for testing", "A type of computer processor", "A security vulnerability"],
+                    answer: "The gap between user intentions and available actions"
+                },
+                {
+                    question: "Which evaluation method involves observing users in their natural environment?",
+                    options: ["Laboratory testing", "Field study", "Heuristic evaluation", "A/B testing"],
+                    answer: "Field study"
+                },
+                {
+                    question: "What is the purpose of card sorting in HCI?",
+                    options: ["To organize information architecture", "To test system performance", "To encrypt data", "To design animations"],
+                    answer: "To organize information architecture"
+                },
+                {
+                    question: "What is Gestalt psychology's contribution to HCI?",
+                    options: ["Security protocols", "Principles of visual perception", "Database management", "Programming languages"],
+                    answer: "Principles of visual perception"
+                }
+            ]
+        };
+
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let easyCompleted = false;
+        let timeLeft = 0;
+        let timerInterval;
+        let questionTime = 20; // seconds per question
+        let userAnswers = [];
+        let currentDifficulty = "easy";
+
+        function startQuiz() {
+            score = 0;
+            easyCompleted = false;
+            userAnswers = [];
+            currentDifficulty = "easy";
+            document.getElementById("current-level").textContent = "Easy";
+            document.getElementById("score").textContent = "0";
+            
+            // Show quiz section, hide summary
+            document.getElementById("quiz-section").style.display = "block";
+            document.getElementById("summary-section").style.display = "none";
+            
+            loadEasyQuestions();
+        }
+
+        function loadEasyQuestions() {
+            currentQuestions = quizData.easy.sort(() => 0.5 - Math.random()).slice(0, 5);
+            currentQuestionIndex = 0;
+            loadQuestion();
+        }
+
+        function loadDifficultQuestions() {
+            currentQuestions = quizData.difficult.sort(() => 0.5 - Math.random()).slice(0, 5);
+            currentQuestionIndex = 0;
+            currentDifficulty = "difficult";
+            document.getElementById("current-level").textContent = "Difficult";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex < currentQuestions.length) {
+                const questionData = currentQuestions[currentQuestionIndex];
+                document.getElementById("question").textContent = questionData.question;
+                
+                // Update progress bar
+                const progress = ((currentQuestionIndex / currentQuestions.length) * 100);
+                document.getElementById("progress-bar").style.width = progress + "%";
+                document.getElementById("progress-bar").textContent = Math.round(progress) + "%";
+                
+                // Reset feedback
+                document.getElementById("feedback").textContent = "";
+                
+                // Set up options
+                const optionsContainer = document.getElementById("options");
+                optionsContainer.innerHTML = "";
+                questionData.options.forEach(option => {
+                    const btn = document.createElement("button");
+                    btn.textContent = option;
+                    btn.classList.add("option");
+                    btn.onclick = () => checkAnswer(option, questionData.answer, btn);
+                    optionsContainer.appendChild(btn);
+                });
+                
+                // Start timer
+                startTimer();
+            } else {
+                if (!easyCompleted) {
+                    if (score >= 3) { // Changed to 3 to make it easier to advance
+                        easyCompleted = true;
+                        loadDifficultQuestions();
+                    } else {
+                        clearInterval(timerInterval);
+                        document.getElementById("feedback").textContent = "You need to answer at least 3 easy questions correctly to move to difficult ones.";
+                        setTimeout(() => {
+                            showSummary();
+                        }, 2000);
+                    }
+                } else {
+                    showSummary();
+                }
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = questionTime;
+            const timerBar = document.getElementById("timer");
+            timerBar.style.width = "100%";
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const percentage = (timeLeft / questionTime) * 100;
+                timerBar.style.width = percentage + "%";
+                
+                // Change color as time decreases
+                if (percentage > 60) {
+                    timerBar.style.backgroundColor = "#4CAF50"; // Green
+                } else if (percentage > 30) {
+                    timerBar.style.backgroundColor = "#FFC107"; // Yellow
+                } else {
+                    timerBar.style.backgroundColor = "#F44336"; // Red
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Record as wrong answer
+                    userAnswers.push({
+                        question: currentQuestions[currentQuestionIndex].question,
+                        userAnswer: "Time Out",
+                        correctAnswer: currentQuestions[currentQuestionIndex].answer,
+                        isCorrect: false,
+                        difficulty: currentDifficulty
+                    });
+                    document.getElementById("feedback").textContent = "Time's up!";
+                    setTimeout(() => {
+                        currentQuestionIndex++;
+                        loadQuestion();
+                    }, 1500);
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selected, correct, button) {
+            clearInterval(timerInterval);
+            const isCorrect = selected === correct;
+            
+            // Record answer
+            userAnswers.push({
+                question: currentQuestions[currentQuestionIndex].question,
+                userAnswer: selected,
+                correctAnswer: correct,
+                isCorrect: isCorrect,
+                difficulty: currentDifficulty
+            });
+            
+            if (isCorrect) {
+                score++;
+                document.getElementById("score").textContent = score;
+                button.classList.add("correct");
+                document.getElementById("feedback").textContent = "Correct!";
+                
+                // Disable all buttons
+                const buttons = document.querySelectorAll(".option");
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn !== button) {
+                        btn.style.opacity = "0.5";
+                    }
+                });
+                
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 1500);
+            } else {
+                button.classList.add("wrong");
+                document.getElementById("feedback").textContent = "Wrong! The correct answer is: " + correct;
+                
+                // Highlight correct answer
+                const buttons = document.querySelectorAll(".option");
+                buttons.forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.textContent === correct) {
+                        btn.classList.add("correct");
+                    } else if (btn !== button) {
+                        btn.style.opacity = "0.5";
+                    }
+                });
+                
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 2000);
+            }
+        }
+
+        function showSummary() {
+            clearInterval(timerInterval);
+            
+            // Hide quiz, show summary
+            document.getElementById("quiz-section").style.display = "none";
+            document.getElementById("summary-section").style.display = "block";
+            
+            // Update summary stats
+            const totalQuestions = userAnswers.length;
+            const correctAnswers = userAnswers.filter(a => a.isCorrect).length;
+            const accuracy = Math.round((correctAnswers / totalQuestions) * 100);
+            
+            document.getElementById("final-score").textContent = correctAnswers;
+            document.getElementById("total-questions").textContent = totalQuestions;
+            document.getElementById("accuracy").textContent = accuracy + "%";
+            
+            // Generate summary list
+            const summaryList = document.getElementById("summary-list");
+            summaryList.innerHTML = "";
+            
+            userAnswers.forEach((answer, index) => {
+                const item = document.createElement("div");
+                item.classList.add("summary-item");
+                
+                const questionDiv = document.createElement("div");
+                questionDiv.classList.add("summary-question");
+                
+                // Add difficulty badge
+                const badge = document.createElement("span");
+                badge.classList.add("difficulty-badge");
+                badge.classList.add(answer.difficulty);
+                badge.textContent = answer.difficulty === "easy" ? "Easy" : "Hard";
+                questionDiv.appendChild(badge);
+                
+                // Add question text
+                const questionText = document.createElement("span");
+                questionText.textContent = (index + 1) + ". " + answer.question;
+                questionDiv.appendChild(questionText);
+                
+                const answerDiv = document.createElement("div");
+                answerDiv.classList.add("summary-answer");
+                answerDiv.classList.add(answer.isCorrect ? "correct-answer" : "wrong-answer");
+                
+                if (answer.userAnswer === "Time Out") {
+                    answerDiv.textContent = "⏱️ Time Out";
+                } else if (answer.isCorrect) {
+                    answerDiv.textContent = "✓ " + answer.userAnswer;
+                } else {
+                    answerDiv.textContent = "✗ " + answer.userAnswer;
+                }
+                
+                item.appendChild(questionDiv);
+                item.appendChild(answerDiv);
+                summaryList.appendChild(item);
+            });
+        }
+
+        startQuiz();
+    </script>
+</body>
+</html>
